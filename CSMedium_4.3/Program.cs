@@ -8,80 +8,71 @@ namespace CSMedium
 {
     class Program
     {
-        private static HandleChooser _handlerChooser;
+        private static List<ISymbolHandler> _symbolHandlers;
 
         static void Main(string[] args)
         {
-            _handlerChooser = new HandleChooser();
+            _symbolHandlers = new List<ISymbolHandler>() {
+                new StarHandler(),
+                new SharpHandler(),
+                new CommonHandler()
+            };
             while(true)
             {
                 var userInput = Console.ReadLine();
 
-                Console.WriteLine(_handlerChooser.Chose(userInput).SymbolProcess(userInput));
+                foreach(var handler in _symbolHandlers) {
+                    if(handler.Processed(userInput))
+                        break;
+                }
             }
         }
-
-        class HandleChooser
-        {
-            private CommonHandler _commonHandler;
-            private SharpHandler _sharpHandler;
-            private StarHandler _starHandler;
-
-            public HandleChooser()
-            {
-                _commonHandler = new CommonHandler();
-                _sharpHandler = new SharpHandler();
-                _starHandler = new StarHandler();
-            }
-
-            public ISymbolHandler Chose(string userInput)
-            {
-                ISymbolHandler targetHandler = _commonHandler;
-                if(userInput.Length == 1 && userInput[0] == '#')
-                {
-                    targetHandler = new SharpHandler();
-                }
-                else if(userInput[0] == '*' && userInput[userInput.Length - 1] == ';')
-                {
-                    int sum = 0;
-                    for(int i = 1; i < userInput.Length - 1; i++)
-                    {
-                        sum += userInput[i];
-                    }
-                    if(sum % 2 == 0)
-                        targetHandler = new StarHandler();
-                }
-
-                return targetHandler;
-            }
-        }
-
+        
         interface ISymbolHandler
         {
-            string SymbolProcess(string symbol);
+            bool Processed(string symbol);
         }
 
         class SharpHandler : ISymbolHandler
         {
-            public string SymbolProcess(string symbol)
+            public bool Processed(string symbol)
             {
-                return symbol + " - обработка символа '#'\n";
+                if(symbol == "#")
+                {
+                    Console.WriteLine(symbol + " - обработка символа '#'");
+                    return true;
+                }
+                return false;
             }
         }
 
         class StarHandler : ISymbolHandler
         {
-            public string SymbolProcess(string symbol)
+            public bool Processed(string symbol)
             {
-                return symbol + " - обработка символа '*', сумма цифр до ';' чётная\n";
+                if(symbol[0] == '*' && symbol[symbol.Length - 1] == ';')
+                {
+                    int sum = 0;
+                    for(int i = 1; i < symbol.Length - 1; i++)
+                    {
+                        sum += symbol[i];
+                    }
+                    if(sum % 2 == 0)
+                    {
+                        Console.WriteLine(symbol + " - обработка символа '*', сумма цифр до ';' чётная");
+                        return true;
+                    }
+                }
+                return false;
             }
         }
 
         class CommonHandler : ISymbolHandler
         {
-            public string SymbolProcess(string symbol)
+            public bool Processed(string symbol)
             {
-                return symbol + " - общая для символов обработка\n";
+                Console.WriteLine(symbol + " - общая для символов обработка");
+                return true;
             }
         }
     }
